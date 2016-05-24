@@ -1,0 +1,26 @@
+sil hidden Act1.FnWithInout (inout Swift.Int) -> () {
+bb0(%0 : $*Int):
+  %1 = integer_literal $Builtin.Int64, 1337
+  %2 = struct $Int (%1 : $Builtin.Int64)
+  store %2 to %0 : $*Int
+  %4 = tuple ()
+  return %4 : $()
+}
+
+sil hidden Act1.CallInout () -> () {
+bb0:
+	// var x = 42
+  %0 = alloc_stack $Int
+  %1 = integer_literal $Builtin.Int64, 42
+  %2 = struct $Int (%1 : $Builtin.Int64)
+  store %2 to %0#1 : $*Int
+
+	// FnWithInout(&x)
+  %5 = apply Act1.FnWithInout(%0#1) : (inout Swift.Int) -> ()
+
+	// deallocate x, return unit
+	%6 = tuple ()
+  dealloc_stack %0#0 : $*@local_storage Int
+  return %6 : $()
+}
+

@@ -1,0 +1,23 @@
+// $@convention (@owned @callee_owned () -> Int) -> Int
+sil hidden Act3.incrementResult (() -> Swift.Int) -> Swift.Int // ...
+
+sil hidden Act3.getAnswer : $@convention(thin) () -> Int // ...
+
+sil hidden Act3.doStuff () -> () {
+bb0:
+	// Direct Call
+  %0 = function_ref Act3.getAnswer
+  %1 = apply %0() : $@convention(thin) () -> Int
+
+	// Wrapped Call
+	%2 = function_ref Act3.incrementResult
+  %3 = function_ref Act3.getAnswer
+  %4 = thin_to_thick_function %3
+		 	 : $@convention(thin) () -> Int to $@callee_owned () -> Int
+  %5 = apply %2(%4)
+			 : $@convention(thin) (@owned @callee_owned () -> Int) -> Int
+
+	%6 = tuple ()
+  return %6 : $()
+}
+

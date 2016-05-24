@@ -1,0 +1,23 @@
+sil hidden arc.juggle_foo() {
+bb0:
+	// Line 9: Allocating: "var f1 = Foo()"
+  %0 = alloc_box $Foo
+  %1 = function_ref arc.Foo.__allocating_init
+  %2 = metatype $@thick Foo.Type
+  %3 = apply %1(%2)
+  store %3 to %0#1 : $*Foo
+
+	// Line 10: "let f2 = f1"
+	%5 = load %0#1 : $*Foo
+	// Here would be a "strong_retain %5"!
+  debug_value %5 : $Foo
+
+	// Line 12: Scope exit -> Here would be a "strong_release %5"!
+	// But it's immediately preceded by a strong_retain,
+	// so they were both zapped. But %0 must still be released.
+	strong_release %0#0 : $@box Foo
+
+	// return unit
+	%8 = tuple ()
+  return %8 : $()
+}

@@ -1,0 +1,27 @@
+sil hidden arc.juggle_foo() {
+bb0:
+	// Line 9: Allocating: "var f1 = Foo()"
+  %0 = alloc_box $Foo
+  %1 = function_ref arc.Foo.__allocating_init
+  %2 = metatype $@thick Foo.Type
+  %3 = apply %1(%2)
+  store %3 to %0#1 : $*Foo
+
+	// Line 10: "let f2 = f1"
+	%5 = load %0#1 : $*Foo
+  strong_retain %5 : $Foo // assignment retains, as expected
+  debug_value %5 : $Foo
+
+	// Line 11: "use_foo(f2)"
+  %8 = function_ref arc.use_foo
+  strong_retain %5 : $Foo // needed because use_foo consumes refcount
+  %10 = apply %8(%5)
+
+	// Line 12: Scope exit, releasing in LIFO order
+	strong_release %5 : $Foo // release f2
+  strong_release %0#0 : $@box Foo // release f1
+
+	// return unit
+	%13 = tuple ()
+  return %13 : $()
+}
