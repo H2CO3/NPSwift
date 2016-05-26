@@ -11,9 +11,6 @@ for i in 0 ..< N {
     x = ht[i]
     assert(x == i)
     assert(ht.count == i + 1)
-    // assert(ht.count == 1)
-    // ht[i] = nil
-    // assert(ht.count == 0)
 }
 
 let dt = NSDate().timeIntervalSinceDate(t0)
