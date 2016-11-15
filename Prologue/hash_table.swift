@@ -31,29 +31,29 @@ class HashTable<Key: Hashable, Value> {
     }
 
     func get_slot_idx(key: Key) -> Int? {
-		    // do not try to modulo by 0. An empty table has no values.
-		    if slots.count == 0 {
-			      return nil
-		    }
+        // do not try to modulo by 0. An empty table has no values.
+        if slots.count == 0 {
+            return nil
+        }
 
-		    var i = key_index(key)
-		    var hash_offset = 0
+        var i = key_index(key: key)
+        var hash_offset = 0
 
-		    // linear probing using a cached maximal probe sequence length.
-		    // This avoids the need to mark deleted slots as special and
-		    // fixes the performance problem whereby searching for a key after
-		    // having performed lots of deletions results in O(n) running time.
-		    // (max_hash_offset is one less than the length of the longest sequence.)
-		    repeat {
-			      if slots[i]?.key == key {
-				        return i
-			      }
+        // linear probing using a cached maximal probe sequence length.
+        // This avoids the need to mark deleted slots as special and
+        // fixes the performance problem whereby searching for a key after
+        // having performed lots of deletions results in O(n) running time.
+        // (max_hash_offset is one less than the length of the longest sequence.)
+        repeat {
+            if slots[i]?.key == key {
+                return i
+            }
 
-			      i = (i + 1) & mask()
-			      hash_offset += 1
-		    } while hash_offset <= max_hash_offset
+            i = (i + 1) & mask()
+            hash_offset += 1
+        } while hash_offset <= max_hash_offset
 
-		    return nil
+        return nil
     }
 
     func rehash_if_needed() {
@@ -67,46 +67,46 @@ class HashTable<Key: Hashable, Value> {
         let old_slots = slots
 
         clear()
-        
-        slots = [KeyValue<Key, Value>?](count: new_size, repeatedValue: nil)
+
+        slots = [KeyValue<Key, Value>?](repeating: nil, count: new_size)
 
         for slot in old_slots {
             if let slot = slot {
-                insert_norehash(slot.key, slot.value)
+                insert_norehash(key: slot.key, slot.value)
             }
         }
     }
 
     func insert(key: Key, _ value: Value) {
         rehash_if_needed()
-        insert_norehash(key, value)
+        insert_norehash(key: key, value)
     }
 
     func insert_norehash(key: Key, _ value: Value) {
-        var i = key_index(key)
+        var i = key_index(key: key)
         var hash_offset = 0
 
         assert(!should_rehash())
-        assert(get_slot_idx(key) == nil)
+        assert(get_slot_idx(key: key) == nil)
 
         // first, find an empty (unused) slot
-		    while slots[i] != nil {
-			      i = (i + 1) & mask()
-			      hash_offset += 1
+        while slots[i] != nil {
+            i = (i + 1) & mask()
+            hash_offset += 1
         }
 
         // Then, perform the actual insertion
         slots[i] = KeyValue<Key, Value>(key: key, value: value)
 
         // unconditionally increment the size because
-		    // we know that the key didn't exist before.
-		    count += 1
+        // we know that the key didn't exist before.
+        count += 1
 
         // finally, update maximal length of probe sequences (minus one)
-		    if hash_offset > max_hash_offset {
-			      max_hash_offset = hash_offset
-		    }
-		}
+        if hash_offset > max_hash_offset {
+            max_hash_offset = hash_offset
+        }
+    }
 
     func clear() {
         slots.removeAll()
@@ -116,20 +116,20 @@ class HashTable<Key: Hashable, Value> {
 
     subscript(key: Key) -> Value? {
         get {
-            if let slot_idx = get_slot_idx(key) {
+            if let slot_idx = get_slot_idx(key: key) {
                 return slots[slot_idx]!.value
             }
             return nil
         }
         set (value) {
-            let slot_idx = get_slot_idx(key)
+            let slot_idx = get_slot_idx(key: key)
             if let value = value {
                 if let slot_idx = slot_idx {
                     // only replace value of existing key (don't touch count)
                     slots[slot_idx]!.value = value
                 } else {
                     // insert nonexistent key-value pair. 'insert()' takes care of the count.
-                    insert(key, value)
+                    insert(key: key, value)
                 }
             } else if let slot_idx = slot_idx {
                 // remove

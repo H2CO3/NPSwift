@@ -13,5 +13,5 @@ for i in 0 ..< N {
     assert(ht.count == i + 1)
 }
 
-let dt = NSDate().timeIntervalSinceDate(t0)
+let dt = NSDate().timeIntervalSince(t0 as Date)
 print(String(format:"%.0f ms", dt * 1000))
